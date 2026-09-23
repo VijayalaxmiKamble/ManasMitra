@@ -1,9 +1,10 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { Brain, CheckCircle2, LockKeyhole, Sparkles, UserRound } from 'lucide-react';
+import { CheckCircle2, LockKeyhole, Sparkles, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/store/useStore';
+import BrandMark from '@/components/ui/BrandMark';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function SignupPage() {
     <main className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-violet-100 px-4 py-8 text-slate-900 lg:px-10">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1fr_0.85fr]">
         <section className="rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-blue-700 p-8 text-white shadow-xl lg:p-12">
-          <div className="mb-16 flex items-center gap-3"><Brain className="h-10 w-10" /><span className="text-2xl font-bold">Manas Mitra</span></div>
+          <div className="mb-16"><div className="**:text-white"><BrandMark compact /></div></div>
           <div className="max-w-xl"><p className="mb-4 text-sm font-semibold uppercase tracking-widest text-indigo-100">Cognitive wellness companion</p><h1 className="text-4xl font-bold leading-tight lg:text-6xl">Practice the moments that matter.</h1><p className="mt-6 text-lg leading-8 text-indigo-100">Build confidence with gentle exercises for memory, focus, problem-solving, and everyday routines.</p></div>
           <div className="mt-12 grid gap-3 sm:grid-cols-3">{['Memory practice', 'Focused games', 'Daily support'].map((item) => <div key={item} className="rounded-2xl border border-white/20 bg-white/10 p-4"><CheckCircle2 className="mb-3 h-5 w-5 text-emerald-200" /><p className="text-sm font-semibold">{item}</p></div>)}</div>
         </section>

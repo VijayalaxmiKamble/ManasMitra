@@ -8,8 +8,8 @@ import { format } from 'date-fns';
 export default function ReportsPage() {
   const { progress, achievements } = useStore();
   const [reportType, setReportType] = useState<'weekly' | 'monthly'>('weekly');
-  const [startDate, setStartDate] = useState(format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState('2024-01-01');
+  const [endDate, setEndDate] = useState('2024-01-08');
 
   const handlePrint = () => {
     window.print();

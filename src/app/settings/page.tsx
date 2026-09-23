@@ -1,130 +1,30 @@
 'use client';
 
-import { Settings, User, Bell, Palette, Shield, Database } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Bell, Database, Eye, Languages, LogOut, Palette, Shield, User, Volume2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { languageOptions } from '@/utils/translations';
+import { speak } from '@/utils/voice';
 
 export default function SettingsPage() {
-  const { theme, toggleTheme, user } = useStore();
+  const router = useRouter();
+  const { theme, toggleTheme, user, updateUser, voiceEnabled, voiceVolume, setVoiceEnabled, setVoiceVolume, language, setLanguage, accessibility, setAccessibility, logout } = useStore();
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [saved, setSaved] = useState(false);
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="text-muted-foreground">Manage your account and application preferences</p>
-      </div>
+  const saveAccount = () => { updateUser({ name, email }); setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  const handleLogout = () => { if (window.confirm('Are you sure you want to logout?')) { logout(); router.replace('/signup'); } };
 
-      {/* Account Settings */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <User className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Account</h2>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Name</label>
-            <input
-              type="text"
-              defaultValue={user?.name || ''}
-              className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Email</label>
-            <input
-              type="email"
-              defaultValue={user?.email || ''}
-              className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Appearance */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <Palette className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Appearance</h2>
-        </div>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-foreground">Theme</p>
-              <p className="text-sm text-muted-foreground">Toggle between light and dark mode</p>
-            </div>
-            <button
-              onClick={toggleTheme}
-              className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-          <p className="text-sm text-muted-foreground">Current: {theme === 'light' ? 'Light' : 'Dark'} Mode</p>
-        </div>
-      </div>
-
-      {/* Notifications */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <Bell className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Notifications</h2>
-        </div>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-foreground">Daily Reminders</p>
-              <p className="text-sm text-muted-foreground">Get reminded to complete daily activities</p>
-            </div>
-            <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
-              <span className="inline-block h-4 w-4 translate-x-6 transform rounded-full bg-white transition-transform" />
-            </button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-foreground">Achievement Alerts</p>
-              <p className="text-sm text-muted-foreground">Notify when you unlock achievements</p>
-            </div>
-            <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
-              <span className="inline-block h-4 w-4 translate-x-6 transform rounded-full bg-white transition-transform" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Privacy */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <Shield className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Privacy & Security</h2>
-        </div>
-        <div className="space-y-4">
-          <button className="text-sm font-medium text-primary hover:underline">
-            Change Password
-          </button>
-          <button className="text-sm font-medium text-primary hover:underline">
-            Manage Data
-          </button>
-        </div>
-      </div>
-
-      {/* Data */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <Database className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Data Management</h2>
-        </div>
-        <div className="space-y-4">
-          <button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors">
-            Export Data
-          </button>
-          <button className="rounded-lg border border-error bg-error/10 px-4 py-2 text-sm font-semibold text-error hover:bg-error/20 transition-colors">
-            Clear All Data
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="space-y-6"><div><h1 className="text-3xl font-bold text-foreground">Settings</h1><p className="mt-2 text-muted-foreground">Make Manas Mitra comfortable and useful for you.</p></div>
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><div className="mb-4 flex items-center gap-3"><User className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Account</h2></div><div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-medium text-foreground">Name<input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground" /></label><label className="text-sm font-medium text-foreground">Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground" /></label></div><button onClick={saveAccount} className="mt-4 rounded-lg bg-primary px-5 py-2 font-semibold text-primary-foreground">{saved ? 'Saved' : 'Save Account'}</button></section>
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><div className="mb-4 flex items-center gap-3"><Palette className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Appearance</h2></div><div className="flex items-center justify-between"><div><p className="font-medium text-foreground">Light / Dark mode</p><p className="text-sm text-muted-foreground">Current: {theme}</p></div><button onClick={toggleTheme} className="rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground">Switch Theme</button></div></section>
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><div className="mb-4 flex items-center gap-3"><Volume2 className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Voice Assistant</h2></div><div className="flex flex-wrap items-center gap-4"><button onClick={() => { const next = !voiceEnabled; setVoiceEnabled(next); speak(next ? 'Voice assistant enabled' : 'Voice assistant disabled', next, voiceVolume); }} className={`rounded-lg px-4 py-2 font-semibold ${voiceEnabled ? 'bg-success text-white' : 'bg-muted text-foreground'}`}>{voiceEnabled ? 'ON' : 'OFF'}</button><label className="text-sm text-foreground">Volume<input aria-label="Voice volume" type="range" min="0" max="1" step="0.1" value={voiceVolume} onChange={(e) => setVoiceVolume(Number(e.target.value))} className="ml-3 align-middle" /></label><button onClick={() => speak('This is a Manas Mitra voice test.', voiceEnabled, voiceVolume)} disabled={!voiceEnabled} className="rounded-lg border border-border px-4 py-2 font-semibold text-foreground disabled:opacity-50">Test Voice</button></div></section>
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><div className="mb-4 flex items-center gap-3"><Languages className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Language</h2></div><label className="text-sm font-medium text-foreground">Choose language<select value={language} onChange={(e) => setLanguage(e.target.value as typeof language)} className="mt-1 block w-full max-w-sm rounded-lg border border-border bg-background px-4 py-3 text-foreground">{languageOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label></section>
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><div className="mb-4 flex items-center gap-3"><Eye className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Accessibility</h2></div><div className="space-y-4">{[['largerText', 'Larger text'], ['highContrast', 'High contrast'], ['reducedMotion', 'Reduced motion']].map(([key, label]) => <label key={key} className="flex items-center justify-between text-foreground"><span>{label}</span><input type="checkbox" checked={accessibility[key as keyof typeof accessibility]} onChange={(e) => setAccessibility({ [key]: e.target.checked })} className="h-5 w-5 accent-indigo-600" /></label>)}</div></section>
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><div className="mb-4 flex items-center gap-3"><Bell className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Notifications</h2></div><p className="text-sm text-muted-foreground">Notifications are shown in the app for reminders, challenge results, and achievements.</p></section>
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><div className="mb-4 flex items-center gap-3"><Shield className="h-5 w-5 text-primary" /><h2 className="text-lg font-semibold text-foreground">Privacy</h2></div><p className="text-sm text-muted-foreground">Your demo data is stored locally in this browser. No diagnosis is made by this app.</p><button onClick={() => { window.localStorage.clear(); window.location.reload(); }} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-error px-4 py-2 font-semibold text-error"><Database className="h-4 w-4" />Clear Local Data</button></section>
+    <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-lg border border-error px-5 py-3 font-bold text-error hover:bg-error/10"><LogOut className="h-5 w-5" />Logout</button>
+  </div>;
 }

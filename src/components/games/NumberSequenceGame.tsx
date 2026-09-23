@@ -45,7 +45,7 @@ export default function NumberSequenceGame({ difficulty = 'easy' }: { difficulty
       setGameCompleted(true);
       const finalScore = score + (answer === currentSeq.answer ? 20 : 0);
       const accuracy = Math.round((finalScore / (config.sequenceQuestions * 20)) * 100);
-      updateGameScore('2', finalScore, accuracy, 3);
+      updateGameScore('2', finalScore, accuracy, 3, config.label, config.sequenceQuestions);
       completeGame('2');
     }
   };
@@ -106,7 +106,7 @@ export default function NumberSequenceGame({ difficulty = 'easy' }: { difficulty
               </div>
 
               <div className="flex items-center justify-center gap-2 text-3xl mb-6">
-                {renderSequence(sequences[currentQuestion].sequence)}
+                {renderSequence(sequences[currentQuestion % sequences.length].sequence)}
               </div>
 
               <div className="text-center mb-6">

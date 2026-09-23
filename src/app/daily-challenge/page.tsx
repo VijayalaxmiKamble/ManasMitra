@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { Zap, Clock, Award, Flame, CheckCircle, Sparkles } from 'lucide-react';
 
 export default function DailyChallengePage() {
-  const { dailyChallenge, completeDailyChallenge, updateChallengeStreak } = useStore();
+  const { dailyChallenge, completeDailyChallenge, ensureDailyChallenge, dailyChallengeHistory } = useStore();
   const [isCompleting, setIsCompleting] = useState(false);
   const [challengeStep, setChallengeStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => { ensureDailyChallenge(); }, [ensureDailyChallenge]);
 
   const handleStartChallenge = () => {
     if (challengeStep < 2) {
@@ -47,8 +49,8 @@ export default function DailyChallengePage() {
             </div>
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">Challenge Complete!</h2>
-            <p className="text-muted-foreground">You earned {dailyChallenge.reward} points</p>
+            <h2 className="text-3xl font-bold text-foreground mb-2">Today&apos;s Challenge Completed</h2>
+            <p className="text-muted-foreground">Score {dailyChallenge.score || 85} · Accuracy {dailyChallenge.accuracy || 85}% · Time {dailyChallenge.timeSpent || dailyChallenge.estimatedTime} min</p>
           </div>
           <div className="flex items-center justify-center gap-2 text-warning">
             <Flame className="h-5 w-5" />
@@ -58,7 +60,7 @@ export default function DailyChallengePage() {
             onClick={() => setShowSuccess(false)}
             className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Continue
+            Play More Games
           </button>
         </div>
       </div>
@@ -69,7 +71,7 @@ export default function DailyChallengePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground mb-2">Daily Challenge</h1>
-        <p className="text-muted-foreground">Complete today's challenge to earn rewards and maintain your streak</p>
+        <p className="text-muted-foreground">Complete today&apos;s challenge to earn rewards and maintain your streak</p>
       </div>
 
       {/* Challenge Card */}
@@ -131,11 +133,12 @@ export default function DailyChallengePage() {
         </div>
 
         {dailyChallenge.completed ? (
-          <div className="text-center">
+          <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-success/10 px-6 py-3 text-success">
               <CheckCircle className="h-5 w-5" />
               <span className="font-semibold">Already Completed Today</span>
             </div>
+            <button onClick={() => setShowSuccess(true)} className="block mx-auto rounded-lg bg-primary px-5 py-2 font-semibold text-primary-foreground">View Today&apos;s Result</button>
           </div>
         ) : (
           <div>
@@ -150,6 +153,8 @@ export default function DailyChallengePage() {
           </div>
         )}
       </div>
+
+      {dailyChallengeHistory.length > 0 && <section className="rounded-xl border border-border bg-card p-6 shadow-sm"><h3 className="mb-4 font-semibold text-foreground">Challenge History</h3><div className="space-y-2">{dailyChallengeHistory.slice(-5).reverse().map((item) => <div key={`${item.id}-${item.date}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted p-3 text-sm"><span className="font-semibold text-foreground">{item.title}</span><span className="text-muted-foreground">{item.date} · {item.score} score · {item.accuracy}% accuracy</span></div>)}</div></section>}
 
       {/* Tips */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">

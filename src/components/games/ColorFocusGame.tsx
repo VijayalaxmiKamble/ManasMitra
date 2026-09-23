@@ -31,7 +31,7 @@ export default function ColorFocusGame({ difficulty = 'easy' }: { difficulty?: G
     const nextCorrect = correct + (color === prompt.ink.name ? 1 : 0);
     if (question === config.colorRounds - 1) {
       const accuracy = Math.round((nextCorrect / config.colorRounds) * 100);
-      updateGameScore('5', accuracy, accuracy, 3);
+      updateGameScore('5', accuracy, accuracy, 3, config.label, config.colorRounds);
       completeGame('5');
       setCorrect(nextCorrect);
       setFinished(true);

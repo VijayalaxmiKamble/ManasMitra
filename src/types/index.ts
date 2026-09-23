@@ -6,6 +6,20 @@ export type NotificationType = 'achievement' | 'daily-challenge' | 'reminder' | 
 
 export type TimeFilter = 'week' | 'month' | '3months' | 'all';
 
+export type Language = 'en' | 'hi' | 'mr' | 'gu' | 'bn' | 'ta' | 'te' | 'kn';
+
+export interface GameResult {
+  gameId: string;
+  gameName: string;
+  category: ActivityCategory;
+  difficulty: Difficulty;
+  score: number;
+  accuracy: number;
+  attempts: number;
+  completionTime: number;
+  completedAt: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -62,6 +76,11 @@ export interface DailyChallenge {
   completed: boolean;
   completedAt?: Date;
   streak: number;
+  date?: string;
+  score?: number;
+  accuracy?: number;
+  attempts?: number;
+  timeSpent?: number;
 }
 
 export interface Task {

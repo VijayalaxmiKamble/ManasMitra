@@ -8,7 +8,7 @@ import { useStore } from '@/store/useStore';
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { theme } = useStore();
+  const { theme, accessibility } = useStore();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -30,7 +30,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }, [theme]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${accessibility.largerText ? 'text-lg' : ''} ${accessibility.highContrast ? 'contrast-125' : ''} ${accessibility.reducedMotion ? '[&_*]:!transition-none' : ''}`}>
       <Sidebar />
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 

@@ -1,12 +1,20 @@
 'use client';
 
-import { Sun, Moon, Menu, X } from 'lucide-react';
+import { Sun, Moon, Menu, Mic, MicOff, MessageSquare } from 'lucide-react';
 import { useStore } from '@/store/useStore';
-import { useState } from 'react';
+import Link from 'next/link';
+import { speak } from '@/utils/voice';
+import { translations } from '@/utils/translations';
 
 export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
-  const { theme, toggleTheme } = useStore();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme, voiceEnabled, voiceVolume, setVoiceEnabled, language } = useStore();
+  const text = translations[language];
+
+  const toggleVoice = () => {
+    const next = !voiceEnabled;
+    setVoiceEnabled(next);
+    speak(next ? text.voiceOn : text.voiceOff, next, voiceVolume);
+  };
 
   return (
     <header className="fixed right-0 top-0 z-30 h-16 border-b border-border bg-card lg:left-64">
@@ -32,6 +40,13 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
               <Sun className="h-5 w-5" />
             )}
           </button>
+          <button onClick={toggleVoice} className={`relative rounded-lg p-2 transition-colors ${voiceEnabled ? 'bg-success/10 text-success' : 'text-foreground hover:bg-muted'}`} aria-label={voiceEnabled ? text.voiceOn : text.voiceOff} title={voiceEnabled ? text.voiceOn : text.voiceOff}>
+            {voiceEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+            {voiceEnabled && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-success" />}
+          </button>
+          <Link href="/ai-assistant" className="rounded-lg p-2 text-foreground hover:bg-muted" aria-label={text.aiAssistant} title={text.aiAssistant}>
+            <MessageSquare className="h-5 w-5" />
+          </Link>
         </div>
       </div>
     </header>

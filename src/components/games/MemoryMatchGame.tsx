@@ -57,7 +57,7 @@ export default function MemoryMatchGame({ difficulty = 'easy' }: { difficulty?: 
           if (updatedCards.every(card => card.matched)) {
             setGameCompleted(true);
             const finalScore = Math.max(0, 100 - (moves + 1) * 2 + nextScore);
-            updateGameScore('1', finalScore, Math.round((nextScore / (config.memoryPairs * 10)) * 100), Math.max(1, Math.round(config.memoryTime / 10)));
+            updateGameScore('1', finalScore, Math.round((nextScore / (config.memoryPairs * 10)) * 100), Math.max(1, Math.round(config.memoryTime / 10)), config.label, moves + 1);
             completeGame('1');
           }
         }, 500);

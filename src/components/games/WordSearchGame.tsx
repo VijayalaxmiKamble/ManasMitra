@@ -118,7 +118,7 @@ export default function WordSearchGame({ difficulty = 'easy' }: { difficulty?: G
 
       if (foundWords.length + 1 === words.length) {
         setGameCompleted(true);
-        updateGameScore('3', score + 20, 100, 4);
+        updateGameScore('3', score + 20, 100, 4, config.label, words.length);
         completeGame('3');
       }
     }

@@ -7,7 +7,7 @@ import { TrendingUp, Target, Clock, Award, Flame } from 'lucide-react';
 import { TimeFilter } from '@/types';
 
 export default function AnalyticsPage() {
-  const { progress } = useStore();
+  const { progress, games } = useStore();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
 
   const weeklyData = [
@@ -28,12 +28,7 @@ export default function AnalyticsPage() {
     { name: 'Problem Solving', value: 10, color: '#ef4444' },
   ];
 
-  const gamePerformance = [
-    { name: 'Card Memory', score: 85, accuracy: 90 },
-    { name: 'Number Sequence', score: 78, accuracy: 85 },
-    { name: 'Word Search', score: 92, accuracy: 95 },
-    { name: 'Reaction Time', score: 88, accuracy: 88 },
-  ];
+  const gamePerformance = games.filter((game) => game.score > 0).map((game) => ({ name: game.title, score: game.score, accuracy: game.accuracy }));
 
   return (
     <div className="space-y-6">

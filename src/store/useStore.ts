@@ -12,6 +12,8 @@ import {
   ChatMessage,
   UserProgress,
   Resource,
+  GameResult,
+  Language,
 } from '@/types';
 import {
   mockActivities,
@@ -35,6 +37,14 @@ interface AppState {
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
+  language: Language;
+  setLanguage: (language: Language) => void;
+  voiceEnabled: boolean;
+  voiceVolume: number;
+  setVoiceEnabled: (enabled: boolean) => void;
+  setVoiceVolume: (volume: number) => void;
+  accessibility: { largerText: boolean; highContrast: boolean; reducedMotion: boolean };
+  setAccessibility: (updates: Partial<AppState['accessibility']>) => void;
 
   // User
   user: { name: string; email: string; age?: number; caregiverName?: string; memberSince?: string } | null;
@@ -50,8 +60,10 @@ interface AppState {
   // Games
   games: Game[];
   setGames: (games: Game[]) => void;
-  updateGameScore: (id: string, score: number, accuracy: number, timeSpent: number) => void;
+  updateGameScore: (id: string, score: number, accuracy: number, timeSpent: number, difficulty?: 'Easy' | 'Medium' | 'Hard', attempts?: number) => void;
   completeGame: (id: string) => void;
+  gameResults: GameResult[];
+  saveGameResult: (result: GameResult) => void;
 
   // Achievements
   achievements: Achievement[];
@@ -64,6 +76,8 @@ interface AppState {
   setDailyChallenge: (challenge: DailyChallenge | null) => void;
   completeDailyChallenge: () => void;
   updateChallengeStreak: () => void;
+  dailyChallengeHistory: DailyChallenge[];
+  ensureDailyChallenge: () => void;
 
   // Tasks
   tasks: Task[];
@@ -165,6 +179,14 @@ export const useStore = create<AppState>()(
       theme: 'light',
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
+      language: 'en',
+      setLanguage: (language) => set({ language }),
+      voiceEnabled: false,
+      voiceVolume: 1,
+      setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
+      setVoiceVolume: (voiceVolume) => set({ voiceVolume }),
+      accessibility: { largerText: false, highContrast: false, reducedMotion: false },
+      setAccessibility: (updates) => set((state) => ({ accessibility: { ...state.accessibility, ...updates } })),
 
       // User
       user: null,
@@ -187,6 +209,7 @@ export const useStore = create<AppState>()(
           const nextActivitiesCompleted = state.progress.activitiesCompleted + 1;
           return {
             activities: state.activities.map((item) => item.id === id ? { ...item, completed: true, progress: 100, lastPlayed: new Date() } : item),
+            achievements: state.achievements.map((achievement) => achievement.id === '1' && !achievement.unlocked ? { ...achievement, progress: 1, unlocked: true, unlockedAt: new Date() } : achievement),
             progress: {
               ...state.progress,
               activitiesCompleted: nextActivitiesCompleted,
@@ -202,11 +225,22 @@ export const useStore = create<AppState>()(
       // Games
       games: mockGames,
       setGames: (games) => set({ games }),
-      updateGameScore: (id, score, accuracy, timeSpent) =>
-        set((state) => ({
+      updateGameScore: (id, score, accuracy, timeSpent, difficulty = 'Easy', attempts = 1) =>
+        set((state) => {
+          const game = state.games.find((item) => item.id === id);
+          if (!game) return state;
+          const result: GameResult = { gameId: id, gameName: game.title, category: game.category, difficulty, score, accuracy, attempts, completionTime: timeSpent, completedAt: new Date().toISOString() };
+          const completedGames = state.games.filter((item) => item.completed).length;
+          return {
           games: state.games.map((g) =>
             g.id === id ? { ...g, score, accuracy, timeSpent } : g
           ),
+          achievements: state.achievements.map((achievement) => {
+            if (achievement.id === '2' && !achievement.unlocked) return { ...achievement, progress: 1, unlocked: true, unlockedAt: new Date() };
+            if (achievement.id === '5') return { ...achievement, progress: Math.min(achievement.maxProgress, completedGames + 1), unlocked: completedGames + 1 >= achievement.maxProgress };
+            return achievement;
+          }),
+          gameResults: [...state.gameResults, result],
           progress: {
             ...state.progress,
             overallScore: Math.round((state.progress.overallScore + score) / 2),
@@ -214,7 +248,8 @@ export const useStore = create<AppState>()(
             timeSpent: state.progress.timeSpent + timeSpent,
             gamePerformance: { ...state.progress.gamePerformance, [id]: score },
           },
-        })),
+          };
+        }),
       completeGame: (id) =>
         set((state) => ({
           games: state.games.map((g) =>
@@ -223,6 +258,15 @@ export const useStore = create<AppState>()(
           progress: {
             ...state.progress,
             gamesCompleted: state.progress.gamesCompleted + (state.games.find((g) => g.id === id)?.completed ? 0 : 1),
+          },
+        })),
+      gameResults: [],
+      saveGameResult: (result) =>
+        set((state) => ({
+          gameResults: [...state.gameResults, result],
+          progress: {
+            ...state.progress,
+            gamePerformance: { ...state.progress.gamePerformance, [result.gameId]: result.score },
           },
         })),
 
@@ -254,17 +298,28 @@ export const useStore = create<AppState>()(
         })),
 
       // Daily Challenge
-      dailyChallenge: mockDailyChallenges[0] || null,
+      dailyChallenge: { ...(mockDailyChallenges[0] || null), date: new Date().toISOString().slice(0, 10) },
+      dailyChallengeHistory: [],
+      ensureDailyChallenge: () =>
+        set((state) => {
+          const today = new Date().toISOString().slice(0, 10);
+          if (state.dailyChallenge?.date === today) return state;
+          const options = [
+            { title: 'Memory Boost', description: 'Complete a short memory exercise today', difficulty: 'Easy' as const, estimatedTime: 10, reward: 100 },
+            { title: 'Focus Spark', description: 'Complete a focused attention exercise today', difficulty: 'Medium' as const, estimatedTime: 15, reward: 120 },
+            { title: 'Pattern Path', description: 'Solve a pattern challenge today', difficulty: 'Hard' as const, estimatedTime: 20, reward: 150 },
+          ];
+          const challenge = options[new Date().getDate() % options.length];
+          return { dailyChallenge: { id: `daily-${today}`, ...challenge, completed: false, streak: state.progress.currentStreak, date: today } };
+        }),
       setDailyChallenge: (challenge) => set({ dailyChallenge: challenge }),
       completeDailyChallenge: () =>
         set((state) => {
-          if (!state.dailyChallenge) return state;
+          if (!state.dailyChallenge || state.dailyChallenge.completed) return state;
+          const completedChallenge = { ...state.dailyChallenge, completed: true, completedAt: new Date(), score: 85, accuracy: 85, attempts: 3, timeSpent: state.dailyChallenge.estimatedTime };
           return {
-            dailyChallenge: {
-              ...state.dailyChallenge,
-              completed: true,
-              completedAt: new Date(),
-            },
+            dailyChallenge: completedChallenge,
+            dailyChallengeHistory: [...state.dailyChallengeHistory, completedChallenge],
             progress: {
               ...state.progress,
               currentStreak: state.progress.currentStreak + 1,
@@ -274,7 +329,7 @@ export const useStore = create<AppState>()(
                 id: Date.now().toString(),
                 type: 'daily-challenge',
                 title: 'Daily Challenge Completed!',
-                message: `You earned ${state.dailyChallenge.reward} points`,
+                message: `You earned ${completedChallenge.reward} points`,
                 read: false,
                 createdAt: new Date(),
               },

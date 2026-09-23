@@ -27,6 +27,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import BrandMark from '@/components/ui/BrandMark';
+import { translations } from '@/utils/translations';
 
 const navigationGroups = [
   {
@@ -73,7 +75,9 @@ const navigationGroups = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Main', 'Progress']);
-  const { getUnreadCount, user, logout } = useStore();
+  const { getUnreadCount, user, logout, language } = useStore();
+  const text = translations[language];
+  const translatedName = (name: string) => name === 'Home' ? text.home || name : name === 'Learning Hub' ? text.learning || name : name === 'Games' ? text.games : name === 'Daily Challenge' ? text.dailyChallenge : name === 'AI Assistant' ? text.aiAssistant : name === 'Settings' ? text.settings : name;
   const unreadCount = getUnreadCount();
 
   const toggleGroup = (title: string) => {
@@ -86,10 +90,7 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-card transition-all duration-300 lg:translate-x-0 -translate-x-full">
       <div className="flex h-full flex-col">
         <div className="flex h-16 items-center border-b border-border px-6">
-          <div className="flex items-center gap-2">
-            <Brain className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-foreground">Manas Mitra</span>
-          </div>
+            <BrandMark compact />
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4">
@@ -125,7 +126,7 @@ export default function Sidebar() {
                         }`}
                       >
                         <Icon className="h-4 w-4" />
-                        <span className="flex-1">{item.name}</span>
+                        <span className="flex-1">{translatedName(item.name)}</span>
                         {showBadge && (
                           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-error text-xs text-white">
                             {unreadCount}
@@ -149,7 +150,7 @@ export default function Sidebar() {
               <p className="truncate text-sm font-semibold text-foreground">{user?.name || 'User'}</p>
               <p className="truncate text-xs text-muted-foreground">{user?.email || 'user@example.com'}</p>
             </div>
-            <button onClick={logout} aria-label="Log out" title="Log out" className="rounded-lg p-2 text-muted-foreground hover:bg-error/10 hover:text-error">
+            <button onClick={() => { if (window.confirm('Are you sure you want to logout?')) logout(); }} aria-label={text.logout} title={text.logout} className="rounded-lg p-2 text-muted-foreground hover:bg-error/10 hover:text-error">
               <LogOut className="h-4 w-4" />
             </button>
           </div>

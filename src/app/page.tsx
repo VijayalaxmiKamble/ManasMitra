@@ -76,7 +76,7 @@ export default function HomePage() {
       {dailyChallenge && !dailyChallenge.completed && (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-foreground">Today's Challenge</h2>
+            <h2 className="text-xl font-bold text-foreground">Today&apos;s Challenge</h2>
             <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               {dailyChallenge.difficulty}
             </span>

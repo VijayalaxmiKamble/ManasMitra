@@ -42,7 +42,7 @@ export default function ReactionTimeGame({ difficulty = 'easy' }: { difficulty?:
     if (round === config.reactionRounds - 1) {
       const average = Math.round(nextTimes.reduce((sum, value) => sum + value, 0) / nextTimes.length);
       const score = Math.max(0, Math.min(100, 100 - Math.round((average - 200) / 8)));
-      updateGameScore('4', score, score, Math.max(1, Math.round(average / 1000)));
+      updateGameScore('4', score, score, Math.max(1, Math.round(average / 1000)), config.label, config.reactionRounds);
       completeGame('4');
       setPhase('finished');
     } else {

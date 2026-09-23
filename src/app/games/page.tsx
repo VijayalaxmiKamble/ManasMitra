@@ -4,7 +4,6 @@ import { useStore } from '@/store/useStore';
 import { Gamepad2, Clock, Target, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Difficulty } from '@/types';
 import { difficultyConfig, GameDifficulty } from '@/utils/gameConfig';
 
 export default function GamesPage() {
@@ -74,19 +73,15 @@ export default function GamesPage() {
               </div>
             </div>
 
-            {game.completed ? (
-              <div className="flex items-center gap-2 text-success">
-                <Zap className="h-4 w-4" />
-                <span className="text-sm font-semibold">Completed - Score: {game.score}</span>
-              </div>
-            ) : (
+            <div className="flex items-center justify-between gap-3">
+              {game.completed && <div className="flex items-center gap-2 text-success"><Zap className="h-4 w-4" /><span className="text-sm font-semibold">Best: {game.score}</span></div>}
               <Link
                 href={`/games/${game.id}?difficulty=${difficulty}`}
                 className="block w-full rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                Play Now
+                {game.completed ? 'Play Again' : 'Play Now'}
               </Link>
-            )}
+            </div>
           </div>
         ))}
       </div>
