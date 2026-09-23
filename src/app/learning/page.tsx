@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { BookOpen, Brain, Clock, Target, Search, Filter } from 'lucide-react';
 import { ActivityCategory, Difficulty } from '@/types';
+import Link from 'next/link';
 
 export default function LearningHubPage() {
-  const { activities, updateActivityProgress, completeActivity } = useStore();
+  const { activities } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | 'All'>('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | 'All'>('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,14 +23,6 @@ export default function LearningHubPage() {
       activity.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesDifficulty && matchesSearch;
   });
-
-  const handleStartActivity = (activityId: string) => {
-    // Simulate progress update
-    updateActivityProgress(activityId, 50);
-    setTimeout(() => {
-      completeActivity(activityId);
-    }, 1000);
-  };
 
   const getCategoryIcon = (category: ActivityCategory) => {
     switch (category) {
@@ -151,12 +144,12 @@ export default function LearningHubPage() {
             {activity.completed ? (
               <div className="text-center text-sm font-semibold text-success">Completed ✓</div>
             ) : (
-              <button
-                onClick={() => handleStartActivity(activity.id)}
+              <Link
+                href={`/learning-hub/${activity.id}`}
                 className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Start Learning
-              </button>
+              </Link>
             )}
           </div>
         ))}

@@ -23,14 +23,23 @@ import {
 } from '@/data/mockData';
 
 interface AppState {
+  // Frontend demo authentication
+  isAuthenticated: boolean;
+  isDemoUser: boolean;
+  signIn: (email: string, password: string) => boolean;
+  signUp: (user: { name: string; email: string; age?: number; caregiverName?: string }) => void;
+  tryDemo: () => void;
+  logout: () => void;
+
   // Theme
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
 
   // User
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string; age?: number; caregiverName?: string; memberSince?: string } | null;
   setUser: (user: { name: string; email: string } | null) => void;
+  updateUser: (updates: Partial<NonNullable<AppState['user']>>) => void;
 
   // Activities
   activities: Activity[];
@@ -101,6 +110,57 @@ interface AppState {
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
+      // Authentication is intentionally local-only until a backend is connected.
+      isAuthenticated: false,
+      isDemoUser: false,
+      signIn: (email) => {
+        const storedUser = get().user;
+        if (!storedUser || storedUser.email.toLowerCase() !== email.toLowerCase()) return false;
+        set({ isAuthenticated: true });
+        return true;
+      },
+      signUp: (user) =>
+        set({
+          user: { ...user, memberSince: new Date().toISOString() },
+          isAuthenticated: true,
+          isDemoUser: false,
+        }),
+      tryDemo: () =>
+        set({
+          isAuthenticated: true,
+          isDemoUser: true,
+          user: {
+            name: 'Demo User',
+            email: 'demo@manasmitra.com',
+            age: 68,
+            memberSince: '2024-01-15',
+          },
+          progress: {
+            overallScore: 78,
+            gamesCompleted: 2,
+            activitiesCompleted: 3,
+            accuracy: 82,
+            timeSpent: 42,
+            currentStreak: 4,
+            improvementPercentage: 12,
+            weeklyPerformance: [65, 70, 75, 80, 72, 85, 90],
+            monthlyPerformance: [70, 72, 75, 78, 80, 82, 85, 88, 90, 87, 85, 89],
+            gamePerformance: { '1': 82, '2': 76 },
+            activityPerformance: { '1': 85, '2': 78, '3': 90 },
+          },
+          games: mockGames.map((game) =>
+            ['1', '2'].includes(game.id)
+              ? { ...game, completed: true, score: game.id === '1' ? 82 : 76, accuracy: game.id === '1' ? 82 : 76, timeSpent: 6 }
+              : game
+          ),
+          activities: mockActivities.map((activity) =>
+            ['1', '2', '3'].includes(activity.id)
+              ? { ...activity, completed: true, progress: 100, lastPlayed: new Date() }
+              : activity
+          ),
+        }),
+      logout: () => set({ isAuthenticated: false, isDemoUser: false }),
+
       // Theme
       theme: 'light',
       setTheme: (theme) => set({ theme }),
@@ -109,6 +169,7 @@ export const useStore = create<AppState>()(
       // User
       user: null,
       setUser: (user) => set({ user }),
+      updateUser: (updates) => set((state) => ({ user: state.user ? { ...state.user, ...updates } : state.user })),
 
       // Activities
       activities: mockActivities,
@@ -120,15 +181,23 @@ export const useStore = create<AppState>()(
           ),
         })),
       completeActivity: (id) =>
-        set((state) => ({
-          activities: state.activities.map((a) =>
-            a.id === id ? { ...a, completed: true, progress: 100, lastPlayed: new Date() } : a
-          ),
-          progress: {
-            ...state.progress,
-            activitiesCompleted: state.progress.activitiesCompleted + 1,
-          },
-        })),
+        set((state) => {
+          const activity = state.activities.find((item) => item.id === id);
+          if (!activity || activity.completed) return state;
+          const nextActivitiesCompleted = state.progress.activitiesCompleted + 1;
+          return {
+            activities: state.activities.map((item) => item.id === id ? { ...item, completed: true, progress: 100, lastPlayed: new Date() } : item),
+            progress: {
+              ...state.progress,
+              activitiesCompleted: nextActivitiesCompleted,
+              overallScore: Math.round((state.progress.overallScore + 85) / 2),
+              accuracy: Math.round((state.progress.accuracy + 85) / 2),
+              timeSpent: state.progress.timeSpent + (activity.duration || 5),
+              currentStreak: Math.max(1, state.progress.currentStreak),
+              activityPerformance: { ...state.progress.activityPerformance, [id]: 85 },
+            },
+          };
+        }),
 
       // Games
       games: mockGames,
@@ -138,6 +207,13 @@ export const useStore = create<AppState>()(
           games: state.games.map((g) =>
             g.id === id ? { ...g, score, accuracy, timeSpent } : g
           ),
+          progress: {
+            ...state.progress,
+            overallScore: Math.round((state.progress.overallScore + score) / 2),
+            accuracy: Math.round((state.progress.accuracy + accuracy) / 2),
+            timeSpent: state.progress.timeSpent + timeSpent,
+            gamePerformance: { ...state.progress.gamePerformance, [id]: score },
+          },
         })),
       completeGame: (id) =>
         set((state) => ({
@@ -146,7 +222,7 @@ export const useStore = create<AppState>()(
           ),
           progress: {
             ...state.progress,
-            gamesCompleted: state.progress.gamesCompleted + 1,
+            gamesCompleted: state.progress.gamesCompleted + (state.games.find((g) => g.id === id)?.completed ? 0 : 1),
           },
         })),
 

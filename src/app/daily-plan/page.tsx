@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useStore } from '@/store/useStore';
-import { Calendar, Plus, Trash2, Check, Circle, Target, TrendingUp } from 'lucide-react';
+import { Calendar, Plus, Trash2, Check, Circle, Target, TrendingUp, Play } from 'lucide-react';
+import Link from 'next/link';
 
 export default function DailyPlanPage() {
   const { tasks, addTask, removeTask, toggleTask, updateTaskPriority } = useStore();
@@ -24,6 +25,14 @@ export default function DailyPlanPage() {
 
   const completedTasks = tasks.filter((t) => t.completed).length;
   const progressPercentage = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
+  const recommendations = [
+    { title: 'Memory Practice', description: 'A gentle card matching exercise', type: 'learning' as const, href: '/learning-hub/1', priority: 'medium' as const },
+    { title: 'Focus Training', description: 'A short attention exercise', type: 'learning' as const, href: '/learning-hub/3', priority: 'low' as const },
+    { title: 'Reading Exercise', description: 'Read and answer one question', type: 'learning' as const, href: '/learning-hub/4', priority: 'medium' as const },
+    { title: 'Cognitive Game', description: 'Play a reaction-time game', type: 'game' as const, href: '/games/4', priority: 'low' as const },
+  ];
+
+  const addRecommendation = (recommendation: typeof recommendations[number]) => addTask({ id: `${Date.now()}-${recommendation.title}`, title: recommendation.title, description: recommendation.description, type: recommendation.type, priority: recommendation.priority, completed: false });
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -45,6 +54,11 @@ export default function DailyPlanPage() {
         <p className="text-muted-foreground">Organize your daily activities and track your progress</p>
       </div>
 
+      <section>
+        <div className="mb-3 flex items-center gap-2"><TrendingUp className="h-5 w-5 text-primary" /><h2 className="text-xl font-bold text-foreground">Recommended Activities for Today</h2></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">{recommendations.map((recommendation) => <div key={recommendation.title} className="rounded-xl border border-border bg-card p-5 shadow-sm"><h3 className="font-semibold text-foreground">{recommendation.title}</h3><p className="mt-1 text-sm text-muted-foreground">{recommendation.description}</p><p className="mt-3 text-xs font-semibold uppercase text-muted-foreground">{recommendation.priority} priority · 10 min</p><button onClick={() => addRecommendation(recommendation)} className="mt-4 w-full rounded-lg border border-primary px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/10">Add to Plan</button></div>)}</div>
+      </section>
+
       {/* Progress Summary */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
@@ -63,7 +77,7 @@ export default function DailyPlanPage() {
         </div>
         <div className="w-full bg-muted rounded-full h-3">
           <div
-            className="bg-gradient-to-r from-primary to-accent h-3 rounded-full transition-all"
+            className="bg-linear-to-r from-primary to-accent h-3 rounded-full transition-all"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -134,7 +148,7 @@ export default function DailyPlanPage() {
                 key={task.id}
                 className="rounded-xl border border-border bg-card p-4 shadow-sm"
               >
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleTask(task.id)}
@@ -160,6 +174,7 @@ export default function DailyPlanPage() {
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
+                  <div className="mt-4 flex gap-2"><Link href={task.type === 'game' ? '/games/4' : '/learning-hub/1'} className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Play className="h-4 w-4" />Start</Link><button onClick={() => toggleTask(task.id)} className="rounded-lg border border-border px-3 py-2 text-sm font-semibold text-foreground">Mark Complete</button></div>
                 </div>
               </div>
             ))}

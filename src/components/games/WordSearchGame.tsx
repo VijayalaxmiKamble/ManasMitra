@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { Search, CheckCircle } from 'lucide-react';
+import { GameDifficulty, difficultyConfig } from '@/utils/gameConfig';
 
 const WORDS = ['MEMORY', 'FOCUS', 'BRAIN', 'LEARN', 'THINK'];
 const GRID_SIZE = 10;
 
-export default function WordSearchGame() {
+export default function WordSearchGame({ difficulty = 'easy' }: { difficulty?: GameDifficulty }) {
+  const config = difficultyConfig[difficulty];
+  const words = WORDS.slice(0, config.wordCount);
   const { updateGameScore, completeGame } = useStore();
   const [grid, setGrid] = useState<string[][]>([]);
   const [foundWords, setFoundWords] = useState<string[]>([]);
@@ -21,7 +24,7 @@ export default function WordSearchGame() {
     const newGrid: string[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
     
     // Place words horizontally
-    WORDS.forEach(word => {
+    words.forEach(word => {
       let placed = false;
       let attempts = 0;
       while (!placed && attempts < 100) {
@@ -50,7 +53,7 @@ export default function WordSearchGame() {
     for (let i = 0; i < GRID_SIZE; i++) {
       for (let j = 0; j < GRID_SIZE; j++) {
         if (newGrid[i][j] === '') {
-          newGrid[i][j] = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+          newGrid[i][j] = String.fromCharCode(65 + ((i * GRID_SIZE + j + words.length) % 26));
         }
       }
     }
@@ -109,11 +112,11 @@ export default function WordSearchGame() {
       .map(([row, col]) => grid[row][col])
       .join('');
 
-    if (WORDS.includes(selectedWord) && !foundWords.includes(selectedWord)) {
+    if (words.includes(selectedWord) && !foundWords.includes(selectedWord)) {
       setFoundWords([...foundWords, selectedWord]);
       setScore(score + 20);
 
-      if (foundWords.length + 1 === WORDS.length) {
+      if (foundWords.length + 1 === words.length) {
         setGameCompleted(true);
         updateGameScore('3', score + 20, 100, 4);
         completeGame('3');
@@ -127,17 +130,12 @@ export default function WordSearchGame() {
     return selectedCells.some(([r, c]) => r === row && c === col);
   };
 
-  const isCellInFoundWord = (row: number, col: number) => {
-    // This is a simplified check - in a real implementation, you'd track word positions
-    return false;
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Word Search</h2>
-          <p className="text-muted-foreground">Find hidden words in the grid</p>
+          <p className="text-muted-foreground">Find {words.length} hidden words on {config.label} mode.</p>
         </div>
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Score</p>
@@ -161,7 +159,7 @@ export default function WordSearchGame() {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Words to find:</p>
               <div className="flex flex-wrap gap-2">
-                {WORDS.map(word => (
+                {words.map(word => (
                   <span
                     key={word}
                     className={`px-3 py-1 rounded-full text-sm font-semibold ${

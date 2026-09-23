@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { Brain, CheckCircle, X } from 'lucide-react';
+import { GameDifficulty, difficultyConfig } from '@/utils/gameConfig';
 
 const EMOJIS = ['🧠', '💡', '🎯', '📚', '⏰', '🏆', '⭐', '🔥'];
 
-export default function MemoryMatchGame() {
+export default function MemoryMatchGame({ difficulty = 'easy' }: { difficulty?: GameDifficulty }) {
+  const config = difficultyConfig[difficulty];
   const { updateGameScore, completeGame } = useStore();
   const [cards, setCards] = useState<{ id: number; emoji: string; flipped: boolean; matched: boolean }[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
@@ -16,7 +18,8 @@ export default function MemoryMatchGame() {
   const [score, setScore] = useState(0);
 
   const startGame = () => {
-    const shuffledEmojis = [...EMOJIS, ...EMOJIS].sort(() => Math.random() - 0.5);
+    const symbols = EMOJIS.slice(0, config.memoryPairs);
+    const shuffledEmojis = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
     setCards(shuffledEmojis.map((emoji, index) => ({ id: index, emoji, flipped: false, matched: false })));
     setFlippedCards([]);
     setMoves(0);
@@ -54,7 +57,7 @@ export default function MemoryMatchGame() {
           if (updatedCards.every(card => card.matched)) {
             setGameCompleted(true);
             const finalScore = Math.max(0, 100 - (moves + 1) * 2 + nextScore);
-            updateGameScore('1', finalScore, Math.round((nextScore / (EMOJIS.length * 10)) * 100), 5);
+            updateGameScore('1', finalScore, Math.round((nextScore / (config.memoryPairs * 10)) * 100), Math.max(1, Math.round(config.memoryTime / 10)));
             completeGame('1');
           }
         }, 500);
@@ -76,7 +79,7 @@ export default function MemoryMatchGame() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Memory Match</h2>
-          <p className="text-muted-foreground">Find matching pairs of cards</p>
+          <p className="text-muted-foreground">Find {config.memoryPairs} matching pairs on {config.label} mode.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-center">

@@ -1,10 +1,13 @@
 'use client';
 
-import { User, Mail, Calendar, Award, TrendingUp } from 'lucide-react';
+import { User, Mail, Calendar, Award, TrendingUp, LogOut } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
   const { user, progress, achievements } = useStore();
+  const logout = useStore((state) => state.logout);
+  const router = useRouter();
   const unlockedAchievements = achievements.filter((a) => a.unlocked).length;
 
   return (
@@ -13,6 +16,8 @@ export default function ProfilePage() {
         <h1 className="text-3xl font-bold text-foreground mb-2">Profile</h1>
         <p className="text-muted-foreground">View your profile and achievements</p>
       </div>
+
+      <button onClick={() => { logout(); router.replace('/signup'); }} className="inline-flex items-center gap-2 rounded-lg border border-error px-4 py-2 text-sm font-semibold text-error hover:bg-error/10"><LogOut className="h-4 w-4" /> Logout</button>
 
       {/* User Info */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">

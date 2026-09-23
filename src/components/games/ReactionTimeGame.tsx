@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, MousePointer2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { GameDifficulty, difficultyConfig } from '@/utils/gameConfig';
 
 type Phase = 'idle' | 'waiting' | 'ready' | 'finished';
 
-export default function ReactionTimeGame() {
+export default function ReactionTimeGame({ difficulty = 'easy' }: { difficulty?: GameDifficulty }) {
+  const config = difficultyConfig[difficulty];
   const { updateGameScore, completeGame } = useStore();
   const [phase, setPhase] = useState<Phase>('idle');
   const [round, setRound] = useState(0);
@@ -37,7 +39,7 @@ export default function ReactionTimeGame() {
     const nextTime = Math.round(performance.now() - startedAt.current);
     const nextTimes = [...times, nextTime];
     setTimes(nextTimes);
-    if (round === 2) {
+    if (round === config.reactionRounds - 1) {
       const average = Math.round(nextTimes.reduce((sum, value) => sum + value, 0) / nextTimes.length);
       const score = Math.max(0, Math.min(100, 100 - Math.round((average - 200) / 8)));
       updateGameScore('4', score, score, Math.max(1, Math.round(average / 1000)));
@@ -59,7 +61,7 @@ export default function ReactionTimeGame() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground">Reaction Time</h2>
-        <p className="text-muted-foreground">Wait for green, then tap as quickly as you can.</p>
+        <p className="text-muted-foreground">Wait for green, then tap as quickly as you can for {config.reactionRounds} rounds.</p>
       </div>
       <button
         type="button"

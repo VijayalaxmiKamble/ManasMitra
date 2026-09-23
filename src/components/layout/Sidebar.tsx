@@ -24,6 +24,7 @@ import {
   MessageSquare,
   Library,
   ClipboardCheck,
+  LogOut,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 
@@ -72,7 +73,8 @@ const navigationGroups = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Main', 'Progress']);
-  const unreadCount = useStore((state) => state.getUnreadCount());
+  const { getUnreadCount, user, logout } = useStore();
+  const unreadCount = getUnreadCount();
 
   const toggleGroup = (title: string) => {
     setExpandedGroups((prev) =>
@@ -139,14 +141,17 @@ export default function Sidebar() {
         </nav>
 
         <div className="border-t border-border p-4">
-          <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
+            <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <User className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">User</p>
-              <p className="truncate text-xs text-muted-foreground">user@example.com</p>
+              <p className="truncate text-sm font-semibold text-foreground">{user?.name || 'User'}</p>
+              <p className="truncate text-xs text-muted-foreground">{user?.email || 'user@example.com'}</p>
             </div>
+            <button onClick={logout} aria-label="Log out" title="Log out" className="rounded-lg p-2 text-muted-foreground hover:bg-error/10 hover:text-error">
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>

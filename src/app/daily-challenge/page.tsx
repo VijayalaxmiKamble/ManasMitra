@@ -7,11 +7,15 @@ import { Zap, Clock, Award, Flame, CheckCircle, Sparkles } from 'lucide-react';
 export default function DailyChallengePage() {
   const { dailyChallenge, completeDailyChallenge, updateChallengeStreak } = useStore();
   const [isCompleting, setIsCompleting] = useState(false);
+  const [challengeStep, setChallengeStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleStartChallenge = () => {
+    if (challengeStep < 2) {
+      setChallengeStep(challengeStep + 1);
+      return;
+    }
     setIsCompleting(true);
-    // Simulate challenge completion
     setTimeout(() => {
       completeDailyChallenge();
       setShowSuccess(true);
@@ -21,7 +25,7 @@ export default function DailyChallengePage() {
 
   if (!dailyChallenge) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <div className="text-center">
           <Zap className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
           <p className="text-muted-foreground">No daily challenge available right now.</p>
@@ -32,12 +36,12 @@ export default function DailyChallengePage() {
 
   if (showSuccess) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <div className="text-center space-y-6">
           <div className="flex justify-center">
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-white">
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-linear-to-br from-primary to-accent text-white">
                 <CheckCircle className="h-12 w-12" />
               </div>
             </div>
@@ -69,10 +73,10 @@ export default function DailyChallengePage() {
       </div>
 
       {/* Challenge Card */}
-      <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 p-8 shadow-lg">
+      <div className="rounded-2xl border-2 border-primary/20 bg-linear-to-br from-primary/5 to-accent/5 p-8 shadow-lg">
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-white">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-linear-to-br from-primary to-accent text-white">
               <Zap className="h-8 w-8" />
             </div>
             <div>
@@ -134,13 +138,16 @@ export default function DailyChallengePage() {
             </div>
           </div>
         ) : (
+          <div>
+          <div className="mb-4 rounded-xl bg-card p-4"><div className="flex items-center justify-between text-sm font-semibold text-foreground"><span>Challenge Progress</span><span>{challengeStep + 1} / 3</span></div><div className="mt-3 h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${((challengeStep + 1) / 3) * 100}%` }} /></div><p className="mt-3 text-sm text-muted-foreground">Step {challengeStep + 1}: {['Memory practice', 'Focus exercise', 'Pattern recognition'][challengeStep]}</p></div>
           <button
             onClick={handleStartChallenge}
             disabled={isCompleting}
-            className="w-full rounded-xl bg-gradient-to-r from-primary to-accent px-8 py-4 text-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl bg-linear-to-r from-primary to-accent px-8 py-4 text-lg font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isCompleting ? 'Completing Challenge...' : 'Start Challenge'}
           </button>
+          </div>
         )}
       </div>
 

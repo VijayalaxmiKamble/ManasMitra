@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { Hash, CheckCircle, X } from 'lucide-react';
+import { GameDifficulty, difficultyConfig } from '@/utils/gameConfig';
 
-export default function NumberSequenceGame() {
+export default function NumberSequenceGame({ difficulty = 'easy' }: { difficulty?: GameDifficulty }) {
+  const config = difficultyConfig[difficulty];
   const { updateGameScore, completeGame } = useStore();
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -30,19 +32,19 @@ export default function NumberSequenceGame() {
 
   const handleSubmit = () => {
     const answer = parseInt(userAnswer);
-    const currentSeq = sequences[currentQuestion];
+    const currentSeq = sequences[currentQuestion % sequences.length];
 
     if (answer === currentSeq.answer) {
       setScore(score + 20);
     }
 
-    if (currentQuestion < sequences.length - 1) {
+    if (currentQuestion < config.sequenceQuestions - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setUserAnswer('');
     } else {
       setGameCompleted(true);
       const finalScore = score + (answer === currentSeq.answer ? 20 : 0);
-      const accuracy = Math.round((finalScore / (sequences.length * 20)) * 100);
+      const accuracy = Math.round((finalScore / (config.sequenceQuestions * 20)) * 100);
       updateGameScore('2', finalScore, accuracy, 3);
       completeGame('2');
     }
@@ -71,7 +73,7 @@ export default function NumberSequenceGame() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Number Sequence</h2>
-          <p className="text-muted-foreground">Complete the number pattern</p>
+          <p className="text-muted-foreground">Complete {config.sequenceQuestions} number patterns on {config.label} mode.</p>
         </div>
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Score</p>
@@ -94,11 +96,11 @@ export default function NumberSequenceGame() {
           {!gameCompleted && (
             <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
               <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-2">Question {currentQuestion + 1} of {sequences.length}</p>
+                <p className="text-sm text-muted-foreground mb-2">Question {currentQuestion + 1} of {config.sequenceQuestions}</p>
                 <div className="w-full bg-muted rounded-full h-2">
                   <div
                     className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${((currentQuestion + 1) / sequences.length) * 100}%` }}
+                    style={{ width: `${((currentQuestion + 1) / config.sequenceQuestions) * 100}%` }}
                   />
                 </div>
               </div>
