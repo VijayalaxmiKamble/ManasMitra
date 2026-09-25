@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Manas Mitra
 
-## Getting Started
+This is a Next.js application for cognitive wellness support and memory-focused training.
 
-First, run the development server:
+## What changed
+
+This branch adds a MySQL-backed backend using Prisma and JWT authentication.
+
+## Local setup
+
+1. Create a MySQL database:
+
+```sql
+CREATE DATABASE manasmitra;
+```
+
+2. Copy `.env.example` to `.env` and update values:
+
+```bash
+cp .env.example .env
+```
+
+3. Install dependencies:
+
+```bash
+npm install
+```
+
+4. Run Prisma migrations:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+5. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `POST /api/auth/signup`
+- `POST /api/auth/signin`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/game-results`
+- `POST /api/game-results`
+- `GET /api/progress`
+- `PUT /api/progress`
 
-## Learn More
+## AWS deployment
 
-To learn more about Next.js, take a look at the following resources:
+### Option 1: ECR + ECS Fargate + RDS MySQL
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Use:
+- Amazon RDS MySQL
+- Amazon ECR for the Next.js image
+- ECS Fargate for the application
+- Secrets Manager for `DATABASE_URL` and `JWT_SECRET`
+- Application Load Balancer for HTTPS
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Recommended production stack
 
-## Deploy on Vercel
+```text
+Browser -> ALB -> ECS Fargate (Next.js) -> RDS MySQL
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Docker example
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```dockerfile
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+RUN npx prisma generate && npm run build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+COPY --from=build /app/public ./public
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/prisma ./prisma
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+### AWS env vars
+
+```env
+NODE_ENV=production
+DATABASE_URL=mysql://user:password@host:3306/manasmitra
+JWT_SECRET=very-long-random-secret
+```
+
+### Deployment steps
+
+1. Create an RDS MySQL instance.
+2. Create ECR repository.
+3. Build Docker image.
+4. Push to ECR.
+5. Create ECS cluster and Fargate service.
+6. Add database and JWT secrets.
+7. Run Prisma migrations in a one-off task.
+8. Connect through ALB with HTTPS certificate.
+
+## Security
+
+- Store secrets in AWS Secrets Manager.
+- Keep the database in a private subnet.
+- Use only HTTP-only secure cookies.
+- Never expose `DATABASE_URL` to the browser.
+- Use HTTPS in production.
